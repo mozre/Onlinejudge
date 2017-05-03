@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.exam.dao.ExamDao">
+    
+	<sql id="examColumns">
+		a.id AS "id",
+		a.ename AS "ename",
+		a.detail AS "detail",
+		a.lan AS "lan",
+		a.in_args_type AS "inArgsType",
+		a.out_args_type AS "outArgsType",
+		a.in_args AS "inArgs",
+		a.out_args AS "outArgs",
+		a.deadline AS "deadline",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="examJoins">
+	</sql>
+    
+	<select id="get" resultType="Exam">
+		SELECT 
+			<include refid="examColumns"/>
+		FROM exam a
+		<include refid="examJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="Exam">
+		SELECT 
+			<include refid="examColumns"/>
+		FROM exam a
+		<include refid="examJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="ename != null and ename != ''">
+				AND a.ename LIKE 
+					<if test="dbName == 'oracle'">'%'||#{ename}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{ename}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{ename},'%')</if>
+			</if>
+			<if test="lan != null and lan != ''">
+				AND a.lan = #{lan}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="Exam">
+		SELECT 
+			<include refid="examColumns"/>
+		FROM exam a
+		<include refid="examJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO exam(
+			id,
+			ename,
+			detail,
+			lan,
+			in_args_type,
+			out_args_type,
+			in_args,
+			out_args,
+			deadline,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{ename},
+			#{detail},
+			#{lan},
+			#{inArgsType},
+			#{outArgsType},
+			#{inArgs},
+			#{outArgs},
+			#{deadline},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE exam SET 	
+			ename = #{ename},
+			detail = #{detail},
+			lan = #{lan},
+			in_args_type = #{inArgsType},
+			out_args_type = #{outArgsType},
+			in_args = #{inArgs},
+			out_args = #{outArgs},
+			deadline = #{deadline},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE exam SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>

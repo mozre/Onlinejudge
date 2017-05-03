@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.result.dao.ResultDao">
+
+	<sql id="resultColumns">
+		a.id AS "id",
+		a.uid AS "uid",
+		a.eid AS "eid",
+		a.code AS "code",
+		a.compile AS "compile",
+		a.timeout AS "timeout",
+		a.answer AS "answer",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	<sql id="resultColumnsName">
+		a.id AS "id",
+		b.name AS "uid",
+		a.eid AS "eid",
+		a.code AS "code",
+		a.compile AS "compile",
+		a.timeout AS "timeout",
+		a.answer AS "answer",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+
+	<sql id="resultJoins">
+	</sql>
+
+	<select id="get" resultType="Result">
+		SELECT
+		<include refid="resultColumns"/>
+		FROM result a
+		<include refid="resultJoins"/>
+		WHERE a.id = #{id}
+	</select>
+
+	<select id="getResult" resultType="Result">
+		SELECT
+		<include refid="resultColumns"/>
+		FROM result a
+		WHERE a.eid=#{eid} AND a.uid=#{uid}
+	</select>
+
+	<select id="findList" resultType="Result">
+		SELECT
+			<include refid="resultColumnsName"/>
+		FROM result a
+		LEFT JOIN sys_user b ON b.id=a.uid
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL} AND a.eid=#{eid}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.answer ASC,a.timeout ASC ,a.compile ASC
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="findAllList" resultType="Result">
+		SELECT
+			<include refid="resultColumns"/>
+		FROM result a
+		<include refid="resultJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="insert">
+		INSERT INTO result(
+			id,
+			uid,
+			eid,
+			code,
+			compile,
+			timeout,
+			answer,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{uid},
+			#{eid},
+			#{code},
+			#{compile},
+			#{timeout},
+			#{answer},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+
+	<update id="update">
+		UPDATE result SET 	
+			uid = #{uid},
+			eid = #{eid},
+			code = #{code},
+			compile = #{compile},
+			timeout = #{timeout},
+			answer = #{answer},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+
+	<update id="delete">
+		UPDATE result SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+
+</mapper>
