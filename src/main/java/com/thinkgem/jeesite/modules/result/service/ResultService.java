@@ -53,6 +53,10 @@ public class ResultService extends CrudService<ResultDao, Result> {
         return super.findList(result);
     }
 
+    public List<Result> findListID(Result result) {
+        return resultDao.findListID(result);
+    }
+
     public Page<Result> findPage(Page<Result> page, Result result) {
         return super.findPage(page, result);
     }

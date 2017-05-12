@@ -4,10 +4,12 @@
 package com.thinkgem.jeesite.modules.sys.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import com.thinkgem.jeesite.common.persistence.CrudDao;
 import com.thinkgem.jeesite.common.persistence.annotation.MyBatisDao;
 import com.thinkgem.jeesite.modules.sys.entity.User;
+import org.apache.ibatis.annotations.Select;
 
 /**
  * 用户DAO接口
@@ -19,7 +21,7 @@ public interface UserDao extends CrudDao<User> {
 	
 	/**
 	 * 根据登录名称查询用户
-	 * @param loginName
+	 * @param
 	 * @return
 	 */
 	public User getByLoginName(User user);
@@ -71,5 +73,13 @@ public interface UserDao extends CrudDao<User> {
 	 * @return
 	 */
 	public int updateUserInfo(User user);
+
+	/**
+	 * 更新用户信息
+	 * @param user
+	 * @return
+	 */
+	@Select("SELECT count(1) FROM sys_user WHERE del_flag = #{del_flag} AND user_type = #{user_type}")
+	public int countUserByType(Map<String,String> user);
 
 }

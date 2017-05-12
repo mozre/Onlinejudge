@@ -1,41 +1,53 @@
 package com.thinkgem.jeesite.modules.judge;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by jbnlaptop on 2017/5/1.
  */
-public class Similar {
+public class SimilarCheck {
 
     public final static int K = 3;//切片大小
-    public final static int BaseHash=3;//hash的基底，取质数3
-    private String fileName1;
-    private String fileName2;
+    public final static int BaseHash = 3;//hash的基底，取质数3
 
-    public Similar(String fileName1, String fileName2) {
-        this.fileName1 = fileName1;
-        this.fileName2 = fileName2;
+    private String Code1;
+    private String Code2;
+
+    private List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+
+    public SimilarCheck(List<Map<String, String>> list) {
+        this.list = list;
     }
 
-    public int startSimilar(){
-        ArrayList line=readFileByChars(fileName1);
-        ArrayList line2=readFileByChars(fileName2);
-        //按字符读取文件
-
-        String string1=ArrayToString(generateHashrolling(BaseHash,(generateKgram(line,K)),K));
-        String string2=ArrayToString(generateHashrolling(BaseHash,(generateKgram(line2,K)),K));
-        //把读取的字符串按 k-gram 语法 通过base阶乘的方式 转换成hash
-
-        return (int)(sim(similarMain(string1,string2))*100);
+    public List<Map<String, String>> startSimilar() {//单线程
+        List<Map<String, String>> listReturn = new ArrayList<Map<String, String>>();
+        for (Iterator<Map<String, String>> it = list.iterator(); it.hasNext(); ) {
+            listReturn.add(SimilarCheckMain(it.next()));
+        }
+        return listReturn;
     }
+
+    public static String cutMain(String stringBeforeCut) {
+        String stringAfterCut = ArrayToString(generateHashrolling(BaseHash, (generateKgram(stringBeforeCut, K)), K));
+        return stringAfterCut;
+    }
+
+    //
+    public static Map<String, String> SimilarCheckMain(Map<String, String> map) {
+
+        Map<String, String> mapReturn = new HashMap<String, String>();
+        mapReturn.put("uid1", map.get("uid1"));
+        mapReturn.put("uid2", map.get("uid2"));
+        mapReturn.put("similarRate", Double.toString(sim(similarMain(map.get("code1"), map.get("code2"))) * 100));
+        //返回时存放数据的map
+        return mapReturn;
+    }
+
     //TODO:按字符读取，并去掉头文件以及格式符
-    public static ArrayList readFileByChars(String fileName){
+    public static ArrayList readFileByChars(String fileName) {
         File file = new File(fileName);
-        ArrayList line=new ArrayList();
+        ArrayList line = new ArrayList();
         Reader reader = null;
         try {//先读入reader
             reader = new InputStreamReader(new FileInputStream(file));
@@ -58,11 +70,12 @@ public class Similar {
                 // 同样屏蔽掉\r不显示
 
                 for (int i = 0; i < charread; i++) {
-                    if (tempchars[i] == '\r'||tempchars[i]=='\n'||tempchars[i]=='\t') {
+                    if (tempchars[i] == '\r' || tempchars[i] == '\n' || tempchars[i] == '\t') {
                         continue;
-                    }else if(tempchars[i]=='#'){
-                        while(tempchars[i]!='>')
-                        {i++;}
+                    } else if (tempchars[i] == '#') {
+                        while (tempchars[i] != '>') {
+                            i++;
+                        }
                     } else {
                         line.add(tempchars[i]);
                     }
@@ -83,33 +96,33 @@ public class Similar {
     }
 
     //TODO:将ArrayList转换为String类型
-    public static String ArrayToString(ArrayList line){
-        String stringResult="";
-        for (int i=0;i<line.size();i++) {
-            stringResult+=line.get(i);
+    public static String ArrayToString(ArrayList line) {
+        String stringResult = "";
+        for (int i = 0; i < line.size(); i++) {
+            stringResult += line.get(i);
         }
         return stringResult;
     }
 
     //TODO:将切片后的数据转换为Hash，基底为3
-    public static ArrayList generateHashrolling(int Base,ArrayList kgram,int K){//rolling
-        ArrayList HashList=new ArrayList();
-        int hash =0;
+    public static ArrayList generateHashrolling(int Base, ArrayList kgram, int K) {//rolling
+        ArrayList HashList = new ArrayList();
+        int hash = 0;
         double q;
         String firstShingle = kgram.get(0).toString();
-        for (int i=0;i<3;i++){
-            q=Math.pow(Base,(K-1-i));
-            hash+=Integer.valueOf(firstShingle.getBytes()[i])*q;
+        for (int i = 0; i < 3; i++) {
+            q = Math.pow(Base, (K - 1 - i));
+            hash += Integer.valueOf(firstShingle.getBytes()[i]) * q;
         }//第一个框
         HashList.add(hash);
 
-        String preshingle="";//前置框
-        String shingle="";//当前框
-        for (int i=1;i<kgram.size();i++){
-            preshingle = kgram.get(i-1).toString();
-            shingle=kgram.get(i).toString();
-            q=Math.pow(Base,K);
-            hash=(int)(hash*Base-Integer.valueOf(preshingle.getBytes()[0])*q+Integer.valueOf(shingle.getBytes()[K-1]));
+        String preshingle = "";//前置框
+        String shingle = "";//当前框
+        for (int i = 1; i < kgram.size(); i++) {
+            preshingle = kgram.get(i - 1).toString();
+            shingle = kgram.get(i).toString();
+            q = Math.pow(Base, K);
+            hash = (int) (hash * Base - Integer.valueOf(preshingle.getBytes()[0]) * q + Integer.valueOf(shingle.getBytes()[K - 1]));
             HashList.add(hash);
         }
         System.out.println(HashList);
@@ -117,35 +130,52 @@ public class Similar {
     }
 
     //TODO：切片模块主体
-    public static ArrayList generateKgram(ArrayList line,int K){//k为切片长度
-        ArrayList kgram =new ArrayList();
-        String q="";
-        for(int i=0;i<line.size();i++){
-            if (i+K>(line.size())){
+    public static ArrayList generateKgram(ArrayList line, int K) {//k为切片长度
+        ArrayList kgram = new ArrayList();
+        String q = "";
+        for (int i = 0; i < line.size(); i++) {
+            if (i + K > (line.size())) {
                 break;
             }
-            q=stringcut(line,i ,i+K);
+            q = stringcut(line, i, i + K);
             kgram.add(q);
         }
         System.out.println(kgram);
         return kgram;
     }
 
+    //TODO:切片,参数为字符串
+    public static ArrayList generateKgram(String string, int K) {//k为切片长度
+        ArrayList kgram = new ArrayList();
+        String q = "";
+        for (int i = 0; i < string.length(); i++) {
+            if (i + K > (string.length())) {
+                break;
+            }
+            q = string.substring(i, i + K);
+            kgram.add(q);
+            //q+=line.subList(i,i+K);
+            //kgram=Arrays.copyOf(kgram,kgram.length+1) ;
+            //substring有切片的作用,copyof进行一次扩容
+            //kgram[kgram.length-1]=line.substring(i,i+K);
+            //插入在字符串数组kgram的末端
+        }
+        System.out.println(kgram);
+        return kgram;
+    }
+
     //TODO:切片的具体实现
-    public static String stringcut(ArrayList line,int start,int end)
-    {
-        String CutResult="";
-        for (int i=start;i<end;i++)
-        {
-            CutResult+=line.get(start).toString();
+    public static String stringcut(ArrayList line, int start, int end) {
+        String CutResult = "";
+        for (int i = start; i < end; i++) {
+            CutResult += line.get(start).toString();
             start++;
         }
         return CutResult;
     }
 
     //TODO:字符串放入MAP
-    static Map<Character, int[]> similarMain(String string1, String string2/*,Map<Character, int[]> vectorMap*/)
-    {
+    static Map<Character, int[]> similarMain(String string1, String string2) {
         Map<Character, int[]> vectorMap = new HashMap<Character, int[]>();
         int[] tempArray = null;
         for (Character character1 : string1.toCharArray()) {
@@ -170,6 +200,7 @@ public class Similar {
         }
         return vectorMap;
     }
+
     //TODO:相似检测模块主体
     static double sim(Map<Character, int[]> vectorMap) {
         double result = 0;
@@ -208,4 +239,12 @@ public class Similar {
         }
         return result1 * result2;
     }
+
+    //TODO:list to map to String
+    public static String L2M2S(List<Map<String, String>> list, String uid) {
+        String resultString = "";
+        resultString += list.get(0).get(uid);
+        return resultString;
+    }
 }
+

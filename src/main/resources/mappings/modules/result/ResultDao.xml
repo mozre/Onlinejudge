@@ -69,6 +69,23 @@
 		</choose>
 	</select>
 
+	<select id="findListID" resultType="Result">
+		SELECT
+		<include refid="resultColumns"/>
+		FROM result a
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL} AND a.eid=#{eid}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.answer ASC,a.timeout ASC ,a.compile ASC
+			</otherwise>
+		</choose>
+	</select>
+
 	<select id="findAllList" resultType="Result">
 		SELECT
 			<include refid="resultColumns"/>

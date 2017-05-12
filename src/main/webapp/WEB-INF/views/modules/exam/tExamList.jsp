@@ -65,6 +65,7 @@
             </td>
             <td>
                 <a href="${ctx}/exam/exam/tExamForm?id=${exam.id}">修改</a>
+                <a href="${ctx}/similar/similar/list?id=${exam.id}">查重</a>
                 <a href="${ctx}/exam/exam/delete?id=${exam.id}"
                    onclick="return confirmx('确认要删除该题目吗？', this.href)">删除</a>
             </td>

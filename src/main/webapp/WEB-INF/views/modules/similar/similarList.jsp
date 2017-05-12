@@ -2,7 +2,7 @@
 <%@ include file="/WEB-INF/views/include/taglib.jsp" %>
 <html>
 <head>
-    <title>结果管理</title>
+    <title>查重管理</title>
     <meta name="decorator" content="default"/>
     <script type="text/javascript">
         $(document).ready(function () {
@@ -18,16 +18,15 @@
 </head>
 <body>
 <ul class="nav nav-tabs">
-    <li ><a href="${ctx}/exam/exam/tExamList">题目列表</a></li>
-    <li class="active"><a href="#">结果列表</a></li>
-    <%--<li><a href="${ctx}/result/result/form">结果添加</a></li>--%>
+    <li><a href="${ctx}/exam/exam/tExamList">题目列表</a></li>
+    <li class="active"><a href="${ctx}/similar/similar/">查重列表</a></li>
 </ul>
-<form:form id="searchForm" modelAttribute="result" action="${ctx}/result/result/" method="post"
+<form:form id="searchForm" modelAttribute="similar" action="${ctx}/similar/similar/" method="post"
            class="breadcrumb form-search">
     <input id="pageNo" name="pageNo" type="hidden" value="${page.pageNo}"/>
     <input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
     <%--<ul class="ul-form">--%>
-        <%--<li class="btns"><input id="btnSubmit" class="btn btn-primary" type="submit" value="查重"/></li>--%>
+        <%--<li class="btns"><input id="btnSubmit" class="btn btn-primary" type="submit" value="查询"/></li>--%>
         <%--<li class="clearfix"></li>--%>
     <%--</ul>--%>
 </form:form>
@@ -35,28 +34,26 @@
 <table id="contentTable" class="table table-striped table-bordered table-condensed">
     <thead>
     <tr>
-        <th>姓名</th>
-        <th>编译</th>
-        <th>超时</th>
-        <th>结果</th>
+        <th>学生1姓名</th>
+        <th>学生2姓名</th>
+        <th>相似率</th>
+        <th>更新时间</th>
     </tr>
     </thead>
     <tbody>
-    <c:forEach items="${page.list}" var="result">
+    <c:forEach items="${page.list}" var="similar">
         <tr>
-            <td><a href="${ctx}/result/result/tGetResult?id=${result.id}">
-                    ${result.uid}
-            </a></td>
             <td>
-                    ${fns:getDictLabel(result.compile, 'compile', '')}
+                    ${similar.uid1}
             </td>
             <td>
-                    ${fns:getDictLabel(result.timeout, 'timeout', '')}
+                    ${similar.uid2}
             </td>
             <td>
-                    ${fns:getDictLabel(result.answer, 'answer', '')}
+                    ${similar.similarRate}
             </td>
-        </tr>
+            <td>
+                <fmt:formatDate value="${similar.updateDate}" pattern="yyyy-MM-dd HH:mm:ss"/>
     </c:forEach>
     </tbody>
 </table>

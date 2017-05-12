@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.thinkgem.jeesite.modules.result.entity.Result;
 
+import com.thinkgem.jeesite.modules.sys.entity.User;
 import com.thinkgem.jeesite.modules.sys.utils.UserUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +53,17 @@ public class ExamService extends CrudService<ExamDao, Exam> {
     @Transactional(readOnly = false)
     public void save(Exam exam) {
         super.save(exam);
+    }
+
+    @Transactional(readOnly = false)
+    public void saveWithUser(Exam exam, User user) {
+        if (exam.getIsNewRecord()) {
+            exam.preInsertUser(user);
+            dao.insert(exam);
+        } else {
+            exam.preUpdate();
+            dao.update(exam);
+        }
     }
 
     @Transactional(readOnly = false)
