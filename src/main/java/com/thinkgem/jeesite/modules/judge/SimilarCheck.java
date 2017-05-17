@@ -8,11 +8,9 @@ import java.util.*;
  */
 public class SimilarCheck {
 
-    public final static int K = 3;//切片大小
+    public final static int K = 7;//切片大小
     public final static int BaseHash = 3;//hash的基底，取质数3
 
-    private String Code1;
-    private String Code2;
 
     private List<Map<String, String>> list = new ArrayList<Map<String, String>>();
 
@@ -22,12 +20,13 @@ public class SimilarCheck {
 
     public List<Map<String, String>> startSimilar() {//单线程
         List<Map<String, String>> listReturn = new ArrayList<Map<String, String>>();
-        for (Iterator<Map<String, String>> it = list.iterator(); it.hasNext(); ) {
-            listReturn.add(SimilarCheckMain(it.next()));
+        for (Map<String, String> map : list) {
+            listReturn.add(SimilarCheckMain(map));
         }
         return listReturn;
     }
 
+    //TODO:K-gram切片
     public static String cutMain(String stringBeforeCut) {
         String stringAfterCut = ArrayToString(generateHashrolling(BaseHash, (generateKgram(stringBeforeCut, K)), K));
         return stringAfterCut;
@@ -35,64 +34,14 @@ public class SimilarCheck {
 
     //
     public static Map<String, String> SimilarCheckMain(Map<String, String> map) {
-
+        String Code1 = "";
+        String Code2 = "";
         Map<String, String> mapReturn = new HashMap<String, String>();
         mapReturn.put("uid1", map.get("uid1"));
         mapReturn.put("uid2", map.get("uid2"));
-        mapReturn.put("similarRate", Double.toString(sim(similarMain(map.get("code1"), map.get("code2"))) * 100));
+        mapReturn.put("similarRate", Double.toString(sim(similarMain(cutMain(removeSymbol(map.get("code1"))), cutMain(removeSymbol(map.get("code2"))))) * 100));
         //返回时存放数据的map
         return mapReturn;
-    }
-
-    //TODO:按字符读取，并去掉头文件以及格式符
-    public static ArrayList readFileByChars(String fileName) {
-        File file = new File(fileName);
-        ArrayList line = new ArrayList();
-        Reader reader = null;
-        try {//先读入reader
-            reader = new InputStreamReader(new FileInputStream(file));
-            int tempchar;
-            while ((tempchar = reader.read()) != -1) {
-                // 对于windows下，\r\n这两个字符在一起时，表示一个换行。
-                // 但如果这两个字符分开显示时，会换两次行。
-                // 因此，屏蔽掉\r，或者屏蔽\n。否则，将会多出很多空行。
-            }
-            reader.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {//读取reader
-            char[] tempchars = new char[30];
-            int charread = 0;
-            reader = new InputStreamReader(new FileInputStream(fileName));
-            // 读入多个字符到字符数组中，charread为一次读取字符数
-            while ((charread = reader.read(tempchars)) != -1) {
-                // 同样屏蔽掉\r不显示
-
-                for (int i = 0; i < charread; i++) {
-                    if (tempchars[i] == '\r' || tempchars[i] == '\n' || tempchars[i] == '\t') {
-                        continue;
-                    } else if (tempchars[i] == '#') {
-                        while (tempchars[i] != '>') {
-                            i++;
-                        }
-                    } else {
-                        line.add(tempchars[i]);
-                    }
-                }
-            }
-
-        } catch (Exception e1) {
-            e1.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e1) {
-                }
-            }
-        }
-        return line;
     }
 
     //TODO:将ArrayList转换为String类型
@@ -154,11 +103,6 @@ public class SimilarCheck {
             }
             q = string.substring(i, i + K);
             kgram.add(q);
-            //q+=line.subList(i,i+K);
-            //kgram=Arrays.copyOf(kgram,kgram.length+1) ;
-            //substring有切片的作用,copyof进行一次扩容
-            //kgram[kgram.length-1]=line.substring(i,i+K);
-            //插入在字符串数组kgram的末端
         }
         System.out.println(kgram);
         return kgram;
@@ -246,5 +190,87 @@ public class SimilarCheck {
         resultString += list.get(0).get(uid);
         return resultString;
     }
+
+    //TODO:去除多余符号
+    public static String removeSymbol(String stringPre) {
+        String stringAfter = "";
+        stringAfter = stringPre.replace("\n", "").replace("\r", "").replace("\t", "");
+        //去除格式符
+        //stringAfter=stringAfter.replaceAll("char","c").replaceAll("int",'n').replaceAll()
+        return removeCommentsWithQuoteAndDoubleEscape(stringAfter);
+    }
+
+    /**
+     * 去除code注释
+     * @param code
+     * @return
+     */
+    public static String removeCommentsWithQuoteAndDoubleEscape(String code) {
+        StringBuilder sb = new StringBuilder();
+        int cnt = 0;
+        boolean quoteFlag = false;
+        for (int i = 0; i < code.length(); i++) {
+            //如果没有开始双引号范围
+            if (!quoteFlag) {
+                //如果发现双引号开始
+                if (code.charAt(i) == '\"') {
+                    sb.append(code.charAt(i));
+                    quoteFlag = true;
+                    continue;
+                }
+                //处理双斜杠注释
+                else if (i + 1 < code.length() && code.charAt(i) == '/' && code.charAt(i + 1) == '/') {
+                    while (code.charAt(i) != '\n') {
+                        i++;
+                    }
+                    continue;
+                }
+                //不在双引号范围内
+                else {
+                    //处理/**/注释段
+                    if (cnt == 0) {
+                        if (i + 1 < code.length() && code.charAt(i) == '/' && code.charAt(i + 1) == '*') {
+                            cnt++;
+                            i++;
+                            continue;
+                        }
+                    } else {
+                        //发现"*/"结尾
+                        if (i + 1 < code.length() && code.charAt(i) == '*' && code.charAt(i + 1) == '/') {
+                            cnt--;
+                            i++;
+                            continue;
+                        }
+                        //发现"/*"嵌套
+                        if (i + 1 < code.length() && code.charAt(i) == '/' && code.charAt(i + 1) == '*') {
+                            cnt++;
+                            i++;
+                            continue;
+                        }
+                    }
+                    //如果没有发现/**/注释段或者已经处理完了嵌套的/**/注释段
+                    if (cnt == 0) {
+                        sb.append(code.charAt(i));
+                        continue;
+                    }
+                }
+            }
+            //处理双引号注释段
+            else {
+                //如果发现双引号结束(非转义形式的双引号)
+                if (code.charAt(i) == '\"' && code.charAt(i - 1) != '\\') {
+                    sb.append(code.charAt(i));
+                    quoteFlag = false;
+                }
+                //双引号开始了但是还没有结束
+                else {
+                    sb.append(code.charAt(i));
+                }
+            }
+        }
+        return sb.toString();
+    }
 }
+
+
 

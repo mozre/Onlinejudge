@@ -4,14 +4,15 @@
 package com.thinkgem.jeesite.modules.app.web;
 
 import com.alibaba.druid.support.json.JSONUtils;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+//import com.alibaba.fastjson.JSON;
+//import com.alibaba.fastjson.JSONObject;
 import com.thinkgem.jeesite.modules.app.service.AppService;
 import com.thinkgem.jeesite.modules.exam.entity.Exam;
 import com.thinkgem.jeesite.modules.exam.service.ExamService;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 import com.thinkgem.jeesite.modules.sys.service.SystemService;
 import com.thinkgem.jeesite.modules.sys.utils.UserUtils;
+import org.activiti.engine.impl.util.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -89,7 +90,7 @@ public class AppController {
         try {
 
             String strData = request.getParameter("data");
-            JSONObject object = JSON.parseObject(strData);
+            JSONObject object = (JSONObject) JSONUtils.parse(strData);
             strData = object.getString("data");
 
             //取app的exam对象,强转为map

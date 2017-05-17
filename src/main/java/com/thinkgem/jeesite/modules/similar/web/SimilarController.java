@@ -76,7 +76,7 @@ public class SimilarController extends BaseController {
         for (int outCount = 0; outCount < results.size() - 1; outCount++) {
             String outUid = results.get(outCount).getUid();
             String outCode = Encodes.unescapeHtml(results.get(outCount).getCode());
-            for (int inCount = 1; inCount < results.size(); inCount++) {
+            for (int inCount = outCount+1; inCount < results.size(); inCount++) {
                 String inUid = results.get(inCount).getUid();
                 String inCode = Encodes.unescapeHtml(results.get(inCount).getCode());
                 Map<String, String> map = new HashMap<String, String>();
